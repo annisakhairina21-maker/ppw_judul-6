@@ -126,9 +126,20 @@ const editEmail = document.getElementById('edit-email');
 
 async function openEditModal(id) {
     try {
+        const response = await fetch(`${API_URL}?id=$
+            {id}`);
+            const result = await response.json();
         // Percobaan 6-3 Langkah 2
 
         if (response.ok && result.data) {
+            editId.value = result.data.id;
+            editnpm.value = result.data.npm;
+            editNama.value = result.data.nama;
+            editProdi.value = result.data.program_studi;
+            editAngkatan.value = result.data.angkatan;
+            editEmail.value = result.data.email;
+
+            modalEdit.classList.add('active');
                        
             // Percobaan 6-3 Langkah 3
             
@@ -141,6 +152,7 @@ async function openEditModal(id) {
 }
 
 function closeEditModal() {
+    if (modalEdit) modalEdit.classList.remove('active');
      // Percobaan 6-3 Langkah 4
      
 }
@@ -164,10 +176,20 @@ if (formEdit) {
         };
 
         try {
-             // Percobaan 6-3 Langkah 5
+            const res = await fetch(`${API_URL}?id=${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            
+            });
+            const data = await res.json();
+            
 
             if (res.ok && data.status === 'success') {
-             // Percobaan 6-3 Langkah 6   
+                showAlert(data.message, 'success');
+                closeEditModal();
+                loadMahasiswa();
+              
             } else {
                 showAlert(data.message || 'Gagal memperbarui data', 'danger');
             }
@@ -180,15 +202,28 @@ if (formEdit) {
 // 4. Fetch API POST: Menambahkan Data Baru Tanpa Reload
 if (formTambah) {
     formTambah.addEventListener('submit', async function (event) {
+        event.preventDefault();
         // Percobaan 6-2 Langkah 3 
 
         const dataMahasiswa = {
-            // Percobaan 6-2 Langkah 4
+            npm: document.getElementById('npm').value.trim(),
+            nama: document.getElementById('nama').value.trim(),
+            program_studi: document.getElementById('program_studi').value,
+            angkatan: parseInt(document.getElementById('angkatan').value,10),
+            email:document.getElementById('email').value.trim()
+        
+
 
         };
 
         try {
-            // Percobaan 6-2 Langkah 5
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:JSON.stringify(dataMahasiswa)
+            });
+            const result = await response.json();
+            
             
             if (response.ok && result.status === 'success') {
                 showAlert(result.message, 'success');
@@ -205,12 +240,27 @@ if (formTambah) {
 
 // 5. Fetch API DELETE: Menghapus Data Secara Asinkron
 async function deleteMahasiswa(id, nama) {
+    if (!confirm(`Apakah Anda Yakin ingin menghapus mahasiswa
+        "${nama}`)) return;
     // Percobaan 6-4 Langkah 2
     
     try {
+        const response = await fetch(`${API_URL}?id=${id}`,{
+            method: 'DELETE'
+        });
+        const result = await response.json();
         // Percobaan 6-4 Langkah 3
         
         // Percobaan 6-4 Langkah 4
+        if (response.ok && result.status === 'success') 
+        {
+            showAlert(result.message, 'success');
+            loadMahasiswa(); // Refresh data otomatis
+
+        } else {
+            showAlert(result.message || 'Gagal menghapus data'm 'danger');
+        }
+
 
         
     } catch (error) {
@@ -222,9 +272,15 @@ async function deleteMahasiswa(id, nama) {
 if (inputSearch) {
     let timer = null;
     inputSearch.addEventListener('input', function () {
-    // Percobaan 6-4 Langkah 5
+        clearTimeout(timer);
+        timer = setTimeout(()=> {
+            loadMahasiswa(inputSearch.value.trim());
+        }, 300);
+   
 
     });
 }
+
+loadMahasiswa();
 
 // Inisialisasi: Panggil Data Pertama Kali
